@@ -1,0 +1,11 @@
+senderId,receiverId,message
+8v,5c,"Hello! Are you interested in today's special menu?"
+5c,8v,"Yes, could you share the details?"
+8v,5c,"We have a variety of dishes today including biryani and pasta."
+5c,8v,"That sounds great! I’ll order the biryani."
+8v,5c,"Got it. Your order will be ready by 1 PM."
+5c,8v,"Thank you! How much will it cost?"
+8v,5c,"The cost is $10, including delivery."
+5c,8v,"Perfect! Let me know if there’s any delay."
+8v,5c,"Sure! Thanks for your order."
+5c,8v,"You're welcome. Looking forward to it!"

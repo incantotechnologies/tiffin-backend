@@ -1,0 +1,17 @@
+const signup = {
+    "name",
+    "email",
+    "password",
+    "phoneNumber",
+}
+
+const foodItem = {
+      "name",
+      "price",
+      "expiry",
+      "image",
+      "description",
+      "isVeg",
+      "category",
+      "serves"
+}

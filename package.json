@@ -1,0 +1,25 @@
+{
+  "name": "jwttry",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.4",
+    "axios": "^1.7.9",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "jsonwebtoken": "^9.0.2",
+    "jwttry": "file:",
+    "multer": "^1.4.5-lts.1",
+    "node-cron": "^3.0.3",
+    "nodemailer": "^6.10.0",
+    "sharp": "^0.33.5"
+  }
+}
