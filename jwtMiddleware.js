@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const errorCodes = require('./errorCodes');
 
 // Secret key for JWT
-const JWT_SECRET = 'AhQi8ZzFPbFHaJzi8KzifiQeQJMpfSgFWmrsThcsWhNVYv8Yf1nQfixODayITBRgYCpzhg4jv1kX2RZy+kXYfA==';
+const JWT_SECRET = 'KArAlccIG8coaT1v5orU86jzgewuDPybSOw6JUTYzIeG3ugFhjLgV2rhiLPTLbsFPpyYqd4CNArdcYBU0pJRUg==';
 
 // JWT Verification Middleware
 const verifyJWT = (req, res, next) => {
