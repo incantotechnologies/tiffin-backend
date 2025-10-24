@@ -228,6 +228,7 @@ router.post("/get-food-items", async (req, res) => {
     const updatedFoodItems = foodItems.filter(
       (foodItem) => foodItem.isUpdated == true
     );
+    console.log("New food items (not in foodItemIds):", newFoodItems);
 
     const updatedFoodItemsList = {
       newFoodItems,
