@@ -207,7 +207,7 @@ router.post("/get-food-items", async (req, res) => {
       .select("*")
       .eq("apartmentId", apartmentId)
       .eq("isVisible", true)
-      .in("id", foodItemIds); // This matches all items with IDs in the array
+      .in("foodItemId", foodItemIds); // This matches all items with IDs in the array
 
     // Fetch food items that match the given apartmentId
     /*const { data: foodItems, error } = await supabase
