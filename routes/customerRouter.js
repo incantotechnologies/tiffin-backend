@@ -219,7 +219,7 @@ router.post("/get-food-items", async (req, res) => {
     console.log("req.body:", req.body);
     console.log("Fetched food items for apartment:", apartmentId);
     //filter based on foods that are already present
-    const newFoodItems = foodItems.filter(
+    const newFoodItems = foodItemIds.length === 0 ? foodItems : foodItems.filter(
       (foodItem) => !foodItemIds.includes(foodItem.foodItemId)
     );
     const deletedFoodItemIds = foodItemIds.filter(
