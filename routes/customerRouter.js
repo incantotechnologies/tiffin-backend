@@ -201,28 +201,23 @@ router.post("/get-food-items", async (req, res) => {
   const { apartmentId, foodItemIds } = req.body;
 
   try {
-    // Fetch food items that match the given apartmentId
-   const { data: foodItems, error } = await supabase
+      // Start the base query
+    let query = supabase
       .from("food_items")
       .select("*")
       .eq("apartmentId", apartmentId)
-      .eq("isVisible", true)
-      .in("foodItemId", foodItemIds); // This matches all items with IDs in the array
+      .eq("isVisible", true);
 
-    // Fetch food items that match the given apartmentId
-    /*const { data: foodItems, error } = await supabase
-      .from("food_items")
-      .select("*") // Select all columns
-      .eq("apartmentId", apartmentId)
-      .eq("isVisible", true); // Filter to only include items with the matching apartmentId
-    */
-    console.log("foodItemIds", foodItemIds);
-    console.log("req.body", req.body);
-    console.log("food items are", typeof foodItemIds, apartmentId);
-    
-    // Handle any error during the query
-    handleDBError(error);
+    // Only apply `.in()` filter when foodItemIds is non-empty
+    if (foodItemIds && foodItemIds.length > 0) {
+      query = query.in("foodItemId", foodItemIds);
+    }
+    const { data: foodItems, error } = await query;
+    if (error) throw error;
 
+    console.log("foodItemIds:", foodItemIds);
+    console.log("req.body:", req.body);
+    console.log("Fetched food items for apartment:", apartmentId);
     //filter based on foods that are already present
     const newFoodItems = foodItems.filter(
       (foodItem) => !foodItemIds.includes(foodItem.foodItemId)
