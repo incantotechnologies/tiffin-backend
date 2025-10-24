@@ -202,14 +202,24 @@ router.post("/get-food-items", async (req, res) => {
 
   try {
     // Fetch food items that match the given apartmentId
-    const { data: foodItems, error } = await supabase
+   const { data: foodItems, error } = await supabase
+      .from("food_items")
+      .select("*")
+      .eq("apartmentId", apartmentId)
+      .eq("isVisible", true)
+      .in("id", foodItemIds); // This matches all items with IDs in the array
+
+    // Fetch food items that match the given apartmentId
+    /*const { data: foodItems, error } = await supabase
       .from("food_items")
       .select("*") // Select all columns
       .eq("apartmentId", apartmentId)
       .eq("isVisible", true); // Filter to only include items with the matching apartmentId
-
+    */
+    console.log("foodItemIds", foodItemIds);
+    console.log("req.body", req.body);
     console.log("food items are", typeof foodItemIds, apartmentId);
-
+    
     // Handle any error during the query
     handleDBError(error);
 
