@@ -197,55 +197,63 @@ router.post("/save-apartment", async (req, res) => {
 });
 
 // Route to fetch food items from the 'food_items' table that match the apartmentId
-router.post("/get-food-items", async (req, res) => {
+router.post("/get-food-items", verifyJWT, async (req, res) => {
   const { apartmentId, foodItemIds } = req.body;
 
   try {
-      // Start the base query
     let query = supabase
       .from("food_items")
       .select("*")
       .eq("apartmentId", apartmentId)
       .eq("isVisible", true);
 
-    // Only apply `.in()` filter when foodItemIds is non-empty
     if (foodItemIds && foodItemIds.length > 0) {
       query = query.in("foodItemId", foodItemIds);
     }
+    
     const { data: foodItems, error } = await query;
     if (error) throw error;
 
     console.log("foodItemIds:", foodItemIds);
     console.log("req.body:", req.body);
     console.log("Fetched food items for apartment:", apartmentId);
-    //filter based on foods that are already present
-    const newFoodItems = foodItemIds.length === 0 ? foodItems : foodItems.filter(
-      (foodItem) => !foodItemIds.includes(foodItem.foodItemId)
-    );
-    const deletedFoodItemIds = foodItemIds.filter(
-      (foodItemId) => !foodItems.some((item) => item.foodItemId === foodItemId)
-    );
-    const updatedFoodItems = foodItems.filter(
-      (foodItem) => foodItem.isUpdated == true
-    );
-    console.log("New food items (not in foodItemIds):", newFoodItems);
+    
+    // Get available orders for all food items
+    const foodItemIdsArray = foodItems.map(item => item.foodItemId);
+    let ordersData = [];
+    
+    if (foodItemIdsArray.length > 0) {
+      const { data: orders, error: ordersError } = await supabase
+        .from("max_orders")
+        .select("*")
+        .in("foodItemId", foodItemIdsArray);
 
-    const updatedFoodItemsList = {
-      newFoodItems,
-      updatedFoodItems,
-      deletedFoodItemIds,
-    };
+      if (!ordersError && orders) {
+        ordersData = orders;
+      }
+    }
 
-    // If no error, send the filtered food items as response
-    return res
-      .status(errorCodes.SUCCESS.status)
-      .json({ foodItems: updatedFoodItemsList });
+    // Combine food items with available orders
+    const updatedFoodItemsList = foodItems.map(item => {
+      const orderInfo = ordersData.find(order => order.foodItemId === item.foodItemId);
+      return {
+        ...item,
+        availableOrders: orderInfo ? orderInfo.availableOrders : 0
+      };
+    });
+
+    console.log("Returning food items count:", updatedFoodItemsList.length);
+
+    // Return simple array structure
+    return res.status(200).json({ 
+      foodItems: updatedFoodItemsList // Direct array, not nested object
+    });
+    
   } catch (error) {
-    // If any other error occurs, handle it here and return the appropriate response
     console.error("Error fetching food items:", error);
-    return res.status(errorCodes.INTERNAL_SERVER_ERROR.status).json({
-      message: errorCodes.INTERNAL_SERVER_ERROR.message,
-      error,
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error.message,
     });
   }
 });
