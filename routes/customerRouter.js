@@ -234,6 +234,9 @@ router.post("/get-food-items", verifyJWT, async (req, res) => {
       }
     }
 
+    // Get existing food item IDs from request to determine which are new
+    const existingFoodItemIds = foodItemIds || [];
+
     // Combine food items with available orders
     const updatedFoodItemsList = foodItems.map(item => {
       const orderInfo = ordersData.find(order => order.foodItemId === item.foodItemId);
@@ -254,12 +257,11 @@ router.post("/get-food-items", verifyJWT, async (req, res) => {
     return res.status(200).json({ 
       foodItems: updatedFoodItemsList
     });
-    
   } catch (error) {
-    console.error("Error fetching food items:", error);
-    return res.status(500).json({
-      message: "Internal server error",
-      error: error.message,
+    console.error("Error in get-food-items:", error);
+    return res.status(500).json({ 
+      message: "Internal server error", 
+      error: error.message 
     });
   }
 });
