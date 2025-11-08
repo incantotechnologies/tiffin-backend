@@ -230,16 +230,16 @@ router.post("/get-food-items", verifyJWT, async (req, res) => {
 
       if (!ordersError && orders) {
         ordersData = orders;
+        console.log("Fetched orders data:", ordersData);
       }
     }
 
-    // Get existing food item IDs from request to determine which are new
-    const existingFoodItemIds = foodItemIds || [];
-    
     // Combine food items with available orders
     const updatedFoodItemsList = foodItems.map(item => {
       const orderInfo = ordersData.find(order => order.foodItemId === item.foodItemId);
       const isNewItem = !existingFoodItemIds.includes(item.foodItemId);
+      
+      console.log(`Food item ${item.foodItemId}: availableOrders = ${orderInfo ? orderInfo.availableOrders : 0}`);
       
       return {
         ...item,
