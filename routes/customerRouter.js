@@ -233,20 +233,26 @@ router.post("/get-food-items", verifyJWT, async (req, res) => {
       }
     }
 
+    // Get existing food item IDs from request to determine which are new
+    const existingFoodItemIds = foodItemIds || [];
+    
     // Combine food items with available orders
     const updatedFoodItemsList = foodItems.map(item => {
       const orderInfo = ordersData.find(order => order.foodItemId === item.foodItemId);
+      const isNewItem = !existingFoodItemIds.includes(item.foodItemId);
+      
       return {
         ...item,
+        // Only include image for new food items
+        ...(isNewItem && { image: item.image }),
         availableOrders: orderInfo ? orderInfo.availableOrders : 0
       };
     });
 
     console.log("Returning food items count:", updatedFoodItemsList.length);
 
-    // Return simple array structure
     return res.status(200).json({ 
-      foodItems: updatedFoodItemsList // Direct array, not nested object
+      foodItems: updatedFoodItemsList
     });
     
   } catch (error) {
@@ -879,6 +885,40 @@ router.post("/customer-query", verifyJWT, async (req, res) => {
     return res.status(500).json({
       message: "Internal server error",
       error,
+    });
+  }
+});
+
+router.get("/search-apartments", async (req, res) => {
+  const { query } = req.query;
+
+  try {
+    if (!query || query.length < 3) {
+      return res.status(400).json({ 
+        message: "Query must be at least 3 characters long" 
+      });
+    }
+
+    const { data: apartments, error } = await supabase
+      .from("apartments")
+      .select("id, name, address, pincode")
+      .ilike("name", `%${query}%`)
+      .limit(10);
+
+    if (error) {
+      console.error("Database error:", error);
+      throw error;
+    }
+
+    return res.status(200).json({ 
+      apartments: apartments || [],
+      message: "Apartments fetched successfully" 
+    });
+  } catch (error) {
+    console.error("Error searching apartments:", error);
+    return res.status(500).json({ 
+      message: "Failed to search apartments",
+      error: error.message 
     });
   }
 });
