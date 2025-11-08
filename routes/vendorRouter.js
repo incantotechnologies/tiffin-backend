@@ -397,10 +397,9 @@ router.get("/vendor-food-items", verifyJWT, async (req, res) => {
 });
 
 //Router to edit/delete food items
-router.put("/edit-food-item", verifyJWT, async (req, res) => {
-  const { vendorId } = req.user; // Extract vendorId from the JWT token
+router.put("/edit-food-item/:foodItemId", verifyJWT, async (req, res) => {
+  const { foodItemId } = req.params;
   const {
-    foodItemId,
     name,
     price,
     expiryDate,
@@ -411,25 +410,12 @@ router.put("/edit-food-item", verifyJWT, async (req, res) => {
     serves,
     tags,
     discountPrice,
-  } = req.body; // Extract foodItemId and key from the request payload
+    maxOrders, // Add maxOrders to the destructuring
+  } = req.body;
+  const { vendorId } = req.user;
 
   try {
-    // Check if the food item exists and belongs to the vendor
-    const { data: foodItem, error: fetchError } = await supabase
-      .from("food_items")
-      .select("*")
-      .eq("foodItemId", foodItemId)
-      .eq("vendorId", vendorId)
-      .single(); // Retrieve a single item
-
-    // Handle errors or if food item not found
-    if (fetchError || !foodItem) {
-      return res.status(404).json({
-        message: "Food item not found or does not belong to this vendor.",
-      });
-    }
-    // Update the food item (example: mark it as updated without changing fields)
-    // You can add fields to update as needed
+    // Update the food item
     const { error: updateError } = await supabase
       .from("food_items")
       .update({
@@ -444,16 +430,31 @@ router.put("/edit-food-item", verifyJWT, async (req, res) => {
         serves,
         tags,
         discountPrice,
-        isVisible:true,
-      }) // Example of an update
+        maxOrders, // Update maxOrders in food_items
+        isVisible: true,
+      })
       .eq("foodItemId", foodItemId);
 
-    // Handle update errors
     if (updateError) {
       return res.status(500).json({
         message: "Failed to update the food item.",
         error: updateError,
       });
+    }
+
+    // If maxOrders was provided, also update max_orders table
+    if (maxOrders !== undefined) {
+      const { error: maxOrdersError } = await supabase
+        .from("max_orders")
+        .update({ availableOrders: maxOrders })
+        .eq("foodItemId", foodItemId);
+
+      if (maxOrdersError) {
+        console.error("Error updating max_orders:", maxOrdersError);
+        // Don't fail the request, just log the error
+      } else {
+        console.log(`Synced max_orders for foodItemId ${foodItemId}: ${maxOrders}`);
+      }
     }
 
     return res.status(200).json({
@@ -988,5 +989,50 @@ router.post(
     }
   }
 );
+
+// Route to update available orders for a food item
+router.post("/update-available-orders", verifyJWT, async (req, res) => {
+  const { foodItemId, availableOrders } = req.body;
+  const { vendorId } = req.user;
+
+  try {
+    // Verify the food item belongs to this vendor
+    const { data: foodItem, error: foodItemError } = await supabase
+      .from("food_items")
+      .select("vendorId")
+      .eq("foodItemId", foodItemId)
+      .single();
+
+    if (foodItemError || !foodItem) {
+      return res.status(404).json({ message: "Food item not found" });
+    }
+
+    if (foodItem.vendorId !== vendorId) {
+      return res.status(403).json({ message: "Unauthorized to update this food item" });
+    }
+
+    // Update the max_orders table
+    const { data, error } = await supabase
+      .from("max_orders")
+      .update({ availableOrders })
+      .eq("foodItemId", foodItemId);
+
+    if (error) {
+      console.error("Error updating max_orders:", error);
+      return res.status(500).json({ message: "Failed to update available orders", error });
+    }
+
+    console.log(`Updated availableOrders for foodItemId ${foodItemId}: ${availableOrders}`);
+    
+    res.status(200).json({ 
+      message: "Available orders updated successfully", 
+      foodItemId,
+      availableOrders 
+    });
+  } catch (error) {
+    console.error("Error updating available orders:", error);
+    return res.status(500).json({ message: "Internal server error", error });
+  }
+});
 
 module.exports = router;
